@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile — STATION</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0d0d0d;
+            --surface: #161616;
+            --border: #2a2a2a;
+            --accent: #c8f04a;
+            --text: #f0f0f0;
+            --muted: #888;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 48px 48px;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        /* FIX: header nav shows Contacts + Logout (not Login/Signup) for a logged-in user */
+        header {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        header h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        header nav { display: flex; gap: 1rem; align-items: center; }
+
+        nav a {
+            color: var(--muted);
+            font-size: 0.88rem;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        nav a:hover { color: var(--text); }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            padding: 0.4rem 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        .logout-btn:hover { color: var(--text); border-color: var(--text); }
+
+        /* ── Card ── */
+        .page-body {
+            flex: 1;
+            display: grid;
+            place-items: center;
+            padding: 2rem;
+        }
+
+        .card {
+            position: relative;
+            z-index: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem 2rem;
+            width: min(460px, 100%);
+            animation: fadeUp 0.5s ease both;
+        }
+
+        .card-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 0.4rem;
+        }
+
+        .card-sub {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        /* FIX: use <dl> (definition list) for label/value pairs — semantically correct */
+        .info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            padding: 0.9rem 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        /* FIX: was <h1> — use a label class instead */
+        .info-label {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--muted);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            color: var(--text);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 0.85rem;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #0d0d0d;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(200, 240, 74, 0.25);
+        }
+
+        .btn:active { transform: translateY(0); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>STATION ✦</h1>
+        <nav>
+            <a href="/contact">Contacts</a>
+            <form action="/logout" method="post" style="margin:0">
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </nav>
+    </header>
+
+    <div class="page-body">
+        <!-- FIX: DOM structure was broken — an extra </div> closed personal-info
+             before editBtn, leaving the button orphaned outside the card. -->
+        <div class="card">
+            <h2 class="card-title">Your Profile</h2>
+            <p class="card-sub">Station credentials</p>
+
+            <div class="info-list">
+                <div class="info-row">
+                    <!-- FIX: was <h1>Username:</h1> — headings are not labels -->
+                    <span class="info-label">Username</span>
+                    <span class="info-value">{{ user.username }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email</span>
+                    <span class="info-value">{{ user.email }}</span>
+                </div>
+            </div>
+
+            <a href="/edit" class="btn btn-primary">Edit Profile</a>
+        </div>
+    </div>
+</body>
+</html>

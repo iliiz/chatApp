@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile — ChatApp</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0d0d0d;
+            --surface: #161616;
+            --border: #2a2a2a;
+            --accent: #c8f04a;
+            --text: #f0f0f0;
+            --muted: #888;
+            --error: #ff5f5f;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 48px 48px;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .card {
+            position: relative;
+            z-index: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem 2rem;
+            width: min(420px, 92vw);
+            animation: fadeUp 0.5s ease both;
+        }
+
+        .card h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 0.4rem;
+        }
+
+        .personal-info {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .field { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.1rem; }
+
+        label {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        input {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            padding: 0.75rem 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus { border-color: var(--accent); }
+        input.invalid { border-color: var(--error); }
+
+        .hint {
+            font-size: 0.8rem;
+            color: var(--error);
+            margin-top: 0.2rem;
+        }
+
+        .error-msg {
+            color: var(--error);
+            font-size: 0.88rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.85rem;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #0d0d0d;
+            margin-bottom: 0.75rem;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(200, 240, 74, 0.25);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+            text-decoration: none;
+            display: grid;
+            place-items: center;
+        }
+
+        .btn-ghost:hover { border-color: var(--text); }
+
+        .btn:active { transform: translateY(0); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Edit Profile</h1>
+        <div class="personal-info">Update your station credentials</div>
+        
+        <form id="editForm" novalidate>
+            <div class="field">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" value="{{ user.username }}" placeholder="your_username" autocomplete="username" required>
+            </div>
+            <div class="field">
+                <label for="password">New Password (Optional)</label>
+                <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="new-password">
+            </div>
+            <div class="field">
+                <label for="confirmPassword">Confirm New Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="••••••••" autocomplete="new-password">
+                <span class="hint" id="pwHint"></span>
+            </div>
+
+            <p class="error-msg" id="errorMsg"></p>
+
+            <button type="submit" class="btn btn-primary" id="editBtn">Save Changes</button>
+            <a href="/profile" class="btn btn-ghost">Cancel</a>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('editForm');
+        const editBtn = document.getElementById('editBtn');
+        const pwHint = document.getElementById('pwHint');
+        const errorMsg = document.getElementById('errorMsg');
+
+        function validateForm() {
+            const { username, password, confirmPassword } = form.elements;
+            
+            const hasPassword = password.value.length > 0;
+            const passwordsMatch = password.value === confirmPassword.value;
+
+            if (hasPassword && confirmPassword.value && !passwordsMatch) {
+                pwHint.textContent = 'Passwords do not match';
+                confirmPassword.classList.add('invalid');
+            } else {
+                pwHint.textContent = '';
+                confirmPassword.classList.remove('invalid');
+            }
+
+            const isUsernameValid = username.value.trim().length > 0;
+            
+            if (hasPassword) {
+                editBtn.disabled = !(isUsernameValid && passwordsMatch);
+            } else {
+                editBtn.disabled = !isUsernameValid;
+            }
+        }
+
+        Array.from(form.elements).forEach(el => {
+            el.addEventListener('input', validateForm);
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMsg.textContent = '';
+
+            const formData = new FormData(form);
+            formData.delete('confirmPassword'); 
+
+            try {
+                const response = await fetch('/edit', {
+                    method: 'PATCH',
+                    body: formData,
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    window.location.href = '/profile';
+                } else {
+                    errorMsg.textContent = data.message || 'Failed to update profile.';
+                    console.error(data);
+                }
+            } catch (err) {
+                errorMsg.textContent = 'Network error — please try again.';
+                console.error(err);
+            }
+        }); 
+        
+        validateForm();
+    </script>
+</body>
+</html>

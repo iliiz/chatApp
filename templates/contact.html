@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contacts — STATION</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0d0d0d;
+            --surface: #161616;
+            --border: #2a2a2a;
+            --accent: #c8f04a;
+            --accent-dim: rgba(200, 240, 74, 0.12);
+            --text: #f0f0f0;
+            --muted: #888;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 48px 48px;
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border);
+            background: rgba(13,13,13,0.85);
+            backdrop-filter: blur(8px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        header h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: 0.04em;
+        }
+
+        header nav {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        header nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.88rem;
+            transition: color 0.2s;
+        }
+
+        header nav a:hover { color: var(--text); }
+
+        /* FIX: logout is a real POST form button, not a bare <a href="/login"> link
+           which would navigate to the login page WITHOUT clearing the session cookie. */
+        .logout-form { margin: 0; }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            padding: 0.4rem 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        .logout-btn:hover { color: var(--text); border-color: var(--text); }
+
+        main {
+            flex: 1;
+            padding: 2.5rem 2rem;
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1rem;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.1rem 1.25rem;
+            border-radius: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s, transform 0.15s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .contact-item:hover {
+            border-color: var(--accent);
+            background: var(--accent-dim);
+            transform: translateY(-2px);
+        }
+
+        .contact-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--border);
+            border: 1px solid rgba(200,240,74,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--accent);
+            flex-shrink: 0;
+        }
+
+        .contact-name {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .contact-hint {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 0.15rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--muted);
+            padding: 4rem 0;
+        }
+
+        .empty-state p { font-size: 1rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>STATION.CONTACTS</h1>
+        <nav>
+            <a href="/profile">Profile</a>
+            <form class="logout-form" action="/logout" method="post">
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </nav>
+    </header>
+
+    <main>
+        <p class="section-title">All Users</p>
+        <div class="contact-list">
+            {% for u in users %}
+            <a class="contact-item" href="/chat?receiver_id={{ u.id }}">
+                <div class="contact-avatar">{{ u.username[0] | upper }}</div>
+                <div>
+                    <div class="contact-name">{{ u.username }}</div>
+                    <div class="contact-hint">Click to open chat</div>
+                </div>
+            </a>
+            {% else %}
+            <div class="empty-state">
+                <p>No other users yet. Invite someone to join!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+</html>

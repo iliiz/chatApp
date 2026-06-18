@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STATION ✦</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0d0d0d;
+            --surface: #161616;
+            --border: #2a2a2a;
+            --accent: #c8f04a;
+            --accent-dim: rgba(200, 240, 74, 0.12);
+            --text: #f0f0f0;
+            --muted: #888;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 48px 48px;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .hero {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            padding: 2rem;
+            animation: fadeUp 0.7s ease both;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--accent-dim);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            font-size: 0.72rem;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: 0.35rem 0.9rem;
+            border-radius: 999px;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 800;
+            line-height: 1.05;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.25rem;
+        }
+
+        h1 span { color: var(--accent); }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 1.05rem;
+            max-width: 38ch;
+            margin: 0 auto 2.5rem;
+            line-height: 1.6;
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.85rem 1.75rem;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #0d0d0d;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(200, 240, 74, 0.3);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--text);
+            transform: translateY(-2px);
+        }
+
+        .btn:active { transform: translateY(0); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <main class="hero">
+        <span class="badge">✦ Real-time messaging</span>
+        <h1>Talk to anyone,<br><span>instantly.</span></h1>
+        <p class="subtitle">A clean, fast chat experience built with FastAPI and SQLAlchemy.</p>
+        <div class="actions">
+            {% if logged_in %}
+                <!-- FIX: was linking to /chat which requires ?receiver_id and returns 422 -->
+                <a href="/contact" class="btn btn-primary">Open Contacts →</a>
+                <a href="/profile" class="btn btn-ghost">Profile</a>
+            {% else %}
+                <a href="/contact" class="btn btn-primary">Start Chatting →</a>
+                <a href="/login" class="btn btn-ghost">Login</a>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

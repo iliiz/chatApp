@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up — ChatApp</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0d0d0d;
+            --surface: #161616;
+            --border: #2a2a2a;
+            --accent: #c8f04a;
+            --text: #f0f0f0;
+            --muted: #666;
+            --error: #ff4a4a;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            height: 100dvh;
+            display: grid;
+            place-items: center;
+            padding: 1.5rem;
+        }
+        .auth-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2.5rem 2rem;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        .auth-card h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        .auth-card p {
+            color: var(--muted);
+            font-size: 0.9rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .form-group {
+            margin-bottom: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .form-group label {
+            font-size: 0.85rem;
+            color: #aaa;
+            font-weight: 500;
+        }
+        .form-group input {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus { border-color: var(--accent); }
+        
+        .submit-btn {
+            background: var(--accent);
+            color: #0d0d0d;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .submit-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 16px rgba(200, 240, 74, 0.2);
+        }
+        .error-msg {
+            color: var(--error);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            text-align: center;
+            display: none;
+        }
+        .switch-step { display: none; } 
+        
+        .login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+        .login-link a { color: var(--accent); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <div class="auth-card">
+        <h1>STATION ✦</h1>
+        <p id="formSubtitle">Create an account to start chatting</p>
+
+        <form id="signupForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" required placeholder="iliya">
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" required placeholder="example@gmail.com">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="submit-btn" id="signupBtn">Sign Up</button>
+            <div class="error-msg" id="signupError"></div>
+        </form>
+
+        <form id="otpForm" class="switch-step">
+            <div class="form-group">
+                <label for="otpCode">Enter 4-Digit Verification Code</label>
+                <input type="text" id="otpCode" required maxlength="4" placeholder="1234" style="text-align: center; font-size: 1.5rem; letter-spacing: 8px;">
+            </div>
+            <button type="submit" class="submit-btn">Verify & Create Account</button>
+            <div class="error-msg" id="otpError"></div>
+        </form>
+
+        <div class="login-link" id="loginLink">
+            Already have an account? <a href="/login">Log In</a>
+        </div>
+    </div>
+
+    <script>
+        const signupForm = document.getElementById('signupForm');
+        const otpForm = document.getElementById('otpForm');
+        const formSubtitle = document.getElementById('formSubtitle');
+        const signupError = document.getElementById('signupError');
+        const otpError = document.getElementById('otpError');
+        
+        let userEmail = ''; 
+
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            signupError.style.display = 'none';
+
+            userEmail = document.getElementById('email').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('email', userEmail);
+            formData.append('password', password);
+
+            try {
+                const response = await fetch('/signup', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    signupForm.style.display = 'none';
+                    otpForm.style.display = 'block';
+                    formSubtitle.textContent = `We sent a code to ${userEmail}`;
+                    formSubtitle.style.color = '#c8f04a';
+                } else {
+                    signupError.textContent = data.message || 'An error occurred.';
+                    signupError.style.display = 'block';
+                }
+            } catch (err) {
+                signupError.textContent = 'Network error, please try again.';
+                signupError.style.display = 'block';
+                console.error(err);
+            }
+        });
+
+        otpForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            otpError.style.display = 'none';
+
+            const code = document.getElementById('otpCode').value.trim();
+
+            const formData = new FormData();
+            formData.append('email', userEmail);
+            formData.append('code', code);
+
+            try {
+                const response = await fetch('/verify-otp', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    formSubtitle.textContent = data.message;
+                    formSubtitle.style.color = '#c8f04a';
+                    otpForm.style.display = 'none';
+                    document.getElementById('loginLink').style.display = 'none';
+                    
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                } else {
+                    otpError.textContent = data.message || 'Invalid code.';
+                    otpError.style.display = 'block';
+                }
+            } catch (err) {
+                otpError.textContent = 'Network error, please try again.';
+                otpError.style.display = 'block';
+                console.error(err);
+            }
+        });
+    </script>
+</body>
+</html>
