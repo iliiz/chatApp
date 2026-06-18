@@ -4,7 +4,7 @@ from email.mime.multipart import MIMEMultipart
 import random
 
 SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
+SMTP_PORT = 465  
 SENDER_EMAIL = "zrkiliya@gmail.com"  
 SENDER_PASSWORD = "nueo eowz lkmn gwze"  
 
@@ -32,11 +32,11 @@ def send_otp_email(receiver_email: str, otp_code: str):
     message.attach(MIMEText(body, "html"))
 
     try:
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()  
+        server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
         server.login(SENDER_EMAIL, SENDER_PASSWORD)
         server.sendmail(SENDER_EMAIL, receiver_email, message.as_string())
         server.close()
+        print("Email sent successfully!")
         return True
     except Exception as e:
         print(f"Error sending email: {e}")
