@@ -15,7 +15,7 @@ from .email import generate_otp, send_otp_email
 # ── Database ───────────────────────────────────────────────────────────────────
 # Relative path — db file lands next to wherever you run uvicorn from.
 # Change to an absolute path if needed: "sqlite:///C:/data/app.db"
-DATABASE_URL = "sqlite:///F:/download/DataBase/sqlite-tools-win-x64-3530100/app.db"
+DATABASE_URL = "sqlite:///./app.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False}, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
