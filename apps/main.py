@@ -12,14 +12,10 @@ import uvicorn
 from .models import Base, User, Message
 from .email import generate_otp, send_otp_email
 
-# ── Database ───────────────────────────────────────────────────────────────────
-# Relative path — db file lands next to wherever you run uvicorn from.
-# Change to an absolute path if needed: "sqlite:///C:/data/app.db"
 DATABASE_URL = "sqlite:///./app.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False}, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# ── Password hashing ───────────────────────────────────────────────────────────
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:
@@ -28,17 +24,12 @@ def hash_password(password: str) -> str:
 def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
-# ── OTP store ─────────────────────────────────────────────────────────────────
 pending_users: dict[str, dict] = {}
 OTP_LIFETIME_MINUTES = 10
 
-# ── Lifespan ───────────────────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
-    # ── Seed: ensure at least one admin account exists ────────────────────────
-    # On first run this creates admin / admin@station.local with password "admin".
-    # CHANGE THE PASSWORD immediately after first login via /profile → edit.
     db = SessionLocal()
     try:
         if not db.query(User).filter(User.is_admin == True).first():
@@ -67,7 +58,6 @@ app.add_middleware(
 
 templates = Jinja2Templates(directory="templates")
 
-# ── Helpers ────────────────────────────────────────────────────────────────────
 def get_db():
     db = SessionLocal()
     try:
@@ -94,14 +84,9 @@ def require_user(request: Request, db: Session) -> User:
 def require_admin(request: Request, db: Session) -> User:
     """Return the current user only if they are an admin, else raise 403."""
     user = get_current_user(request, db)
-    # FIX 1: original logic was `if not current_user or current_user.is_admin` which
-    # BLOCKED admins and let everyone else through — completely inverted.
-    # FIX 2: `HTTPExeption` typo → `HTTPException`
     if not user or not user.is_admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
     return user
-
-# ── Page routes ────────────────────────────────────────────────────────────────
 
 @app.get("/")
 def read_root(request: Request, db: Session = Depends(get_db)):
@@ -171,7 +156,6 @@ def read_contact(request: Request, db: Session = Depends(get_db)):
 
 @app.get("/admin")
 def admin_panel(request: Request, db: Session = Depends(get_db)):
-    # FIX: uses require_admin which correctly checks is_admin == True
     current_user = require_admin(request, db)
 
     all_users = db.query(User).order_by(User.id.desc()).all()
@@ -199,7 +183,6 @@ def admin_panel(request: Request, db: Session = Depends(get_db)):
         },
     )
 
-# ── Auth API ───────────────────────────────────────────────────────────────────
 
 @app.post("/login")
 def login(
@@ -262,8 +245,6 @@ def verify_otp(
     del pending_users[email]
     return JSONResponse(content={"success": True, "message": "Account created! Redirecting to login…"})
 
-# ── Chat API ───────────────────────────────────────────────────────────────────
-
 @app.post("/chat")
 def chat(
     request: Request,
@@ -324,8 +305,6 @@ def edit_message(
     db.commit()
     return JSONResponse(content={"success": True})
 
-# ── Profile edit ───────────────────────────────────────────────────────────────
-
 @app.patch("/edit")
 def edit_profile(
     request: Request,
@@ -348,16 +327,13 @@ def edit_profile(
     db.commit()
     return JSONResponse(content={"success": True, "message": "Profile updated."})
 
-# ── Admin API ──────────────────────────────────────────────────────────────────
-# FIX: both endpoints now call require_admin so only admins can use them
-
 @app.post("/admin/delete-user")
 def admin_delete_user(
     request: Request,
     user_id: int = Form(...),
     db: Session = Depends(get_db),
 ):
-    admin = require_admin(request, db)  # FIX: was checking only if logged in, not if admin
+    admin = require_admin(request, db)  
     if user_id == admin.id:
         return JSONResponse(status_code=400, content={"success": False, "message": "Cannot delete your own account."})
     target = db.get(User, user_id)
@@ -375,7 +351,7 @@ def admin_edit_user(
     new_email: str = Form(...),
     db: Session = Depends(get_db),
 ):
-    require_admin(request, db)  # FIX: same — was open to any logged-in user
+    require_admin(request, db)  
     target = db.get(User, user_id)
     if not target:
         return JSONResponse(status_code=404, content={"success": False, "message": "User not found."})
@@ -388,15 +364,11 @@ def admin_edit_user(
     db.commit()
     return JSONResponse(content={"success": True})
 
-# ── Logout ─────────────────────────────────────────────────────────────────────
-
 @app.post("/logout")
 def logout():
     resp = RedirectResponse("/login", status_code=302)
     resp.delete_cookie("user_id")
     return resp
-
-# ── Entry point ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     uvicorn.run("apps.main:app", host="127.0.0.1", port=8000)

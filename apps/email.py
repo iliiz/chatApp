@@ -1,23 +1,22 @@
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import requests
 import random
 
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 465  
+BREVO_API_KEY = "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"
 SENDER_EMAIL = "zrkiliya@gmail.com"  
-SENDER_PASSWORD = "nueo eowz lkmn gwze"  
 
 def generate_otp() -> str:
     return str(random.randint(1000, 9999))
 
 def send_otp_email(receiver_email: str, otp_code: str):
-    message = MIMEMultipart()
-    message["From"] = SENDER_EMAIL
-    message["To"] = receiver_email
-    message["Subject"] = "Verification Code - ChatApp ✦"
-
-    body = f"""
+    url = "https://api.brevo.com/v3/smtp/email"
+    
+    headers = {
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json"
+    }
+    
+    html_body = f"""
     <html>
         <body style="background-color: #0d0d0d; color: #f0f0f0; font-family: sans-serif; padding: 20px; text-align: center;">
             <h1 style="color: #c8f04a;">STATION ✦</h1>
@@ -29,15 +28,22 @@ def send_otp_email(receiver_email: str, otp_code: str):
         </body>
     </html>
     """
-    message.attach(MIMEText(body, "html"))
-
+    
+    payload = {
+        "sender": {"name": "STATION CHAT", "email": SENDER_EMAIL},
+        "to": [{"email": receiver_email}],
+        "subject": "Verification Code - ChatApp ✦",
+        "htmlContent": html_body
+    }
+    
     try:
-        server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
-        server.login(SENDER_EMAIL, SENDER_PASSWORD)
-        server.sendmail(SENDER_EMAIL, receiver_email, message.as_string())
-        server.close()
-        print("Email sent successfully!")
-        return True
+        response = requests.post(url, json=payload, headers=headers)
+        if response.status_code in [200, 201, 202]:
+            print("Email sent successfully via Brevo API!")
+            return True
+        else:
+            print(f"Brevo Error: {response.text}")
+            return False
     except Exception as e:
         print(f"Error sending email: {e}")
         return False
