@@ -1,13 +1,18 @@
+import os
 import requests
 import random
 
-BREVO_API_KEY = "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"
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 SENDER_EMAIL = "zrkiliya@gmail.com"  
 
 def generate_otp() -> str:
     return str(random.randint(1000, 9999))
 
 def send_otp_email(receiver_email: str, otp_code: str):
+    if not BREVO_API_KEY:
+        print(f"--- [LOCAL DEV MODE] Verification Code for {receiver_email}: {otp_code} ---")
+        return True
+
     url = "https://api.brevo.com/v3/smtp/email"
     
     headers = {
