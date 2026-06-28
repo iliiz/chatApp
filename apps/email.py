@@ -1,8 +1,8 @@
 import requests
 import random
 
-BREVO_API_KEY = "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"
-SENDER_EMAIL = "zrkiliya@gmail.com"  
+BREVO_API_KEY = ""
+SENDER_EMAIL = ""  
 
 def generate_otp() -> str:
     return str(random.randint(1000, 9999))
